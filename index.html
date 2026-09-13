@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Murylo — Design & Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --white:#ffffff;
+    --ink:#0f0f14;
+    --ink-soft:#6b6b76;
+    --surface:#f5f5f8;
+    --accent:#5b3df5;
+    --accent-2:#ff3e7f;
+    --border:#e7e7ec;
+    --radius:14px;
+    --maxw:1200px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--white);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Archivo',sans-serif}
+  a{color:inherit;text-decoration:none}
+  ul{list-style:none}
+  img,video{display:block;max-width:100%}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  @media(max-width:640px){.wrap{padding:0 20px}}
+
+  /* respeita usuários que pedem menos movimento */
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(255,255,255,.82);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav{
+    display:flex;align-items:center;justify-content:space-between;
+    height:76px;
+  }
+  .logo{font-weight:900;font-size:20px;letter-spacing:-0.02em}
+  .nav-links{display:flex;gap:36px;font-size:14px;font-weight:500}
+  .nav-links a{position:relative;padding:4px 0}
+  .nav-links a::after{
+    content:"";position:absolute;left:0;bottom:0;width:0;height:2px;
+    background:var(--accent);transition:width .3s ease;
+  }
+  .nav-links a:hover::after{width:100%}
+  .nav-cta{
+    background:var(--ink);color:var(--white);padding:10px 20px;border-radius:100px;
+    font-size:14px;font-weight:600;transition:background .25s ease;
+  }
+  .nav-cta:hover{background:var(--accent)}
+  .nav-add{
+    margin-left:12px;background:none;border:1px solid var(--border);color:var(--ink);
+    padding:9px 16px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .nav-add:hover{border-color:var(--accent);color:var(--accent)}
+  @media(max-width:800px){.nav-add{display:none}}
+  @media(max-width:800px){.nav-links{display:none}}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+    padding-top:76px;position:relative;
+  }
+  .hero-tag{
+    font-size:14px;color:var(--ink-soft);font-weight:500;margin-bottom:24px;
+  }
+  .hero-tag b{color:var(--accent)}
+  .hero h1{
+    font-size:clamp(42px,7.2vw,108px);
+    line-height:0.98;font-weight:900;letter-spacing:-0.03em;
+    max-width:1000px;
+  }
+  .hero .split{overflow:hidden;display:block;line-height:1.02}
+  .hero .split span{
+    display:block;transform:translateY(110%);white-space:nowrap;
+    animation:rise .9s cubic-bezier(.16,1,.3,1) forwards;
+  }
+  .hero h1 .split:nth-child(2) span{animation-delay:.08s}
+  .hero h1 .split:nth-child(3) span{animation-delay:.16s}
+  @keyframes rise{to{transform:translateY(0)}}
+  .hero p.lead{
+    margin-top:28px;max-width:520px;font-size:18px;color:var(--ink-soft);
+    line-height:1.55;
+    opacity:0;animation:fadeup .8s ease forwards;animation-delay:.5s;
+  }
+  .hero-actions{
+    margin-top:40px;display:flex;gap:16px;flex-wrap:wrap;
+    opacity:0;animation:fadeup .8s ease forwards;animation-delay:.65s;
+  }
+  @keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .btn-primary{
+    background:var(--accent);color:var(--white);padding:16px 30px;border-radius:100px;
+    font-weight:600;font-size:15px;transition:transform .25s ease, box-shadow .25s ease;
+    box-shadow:0 8px 24px rgba(91,61,245,.25);
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(91,61,245,.32)}
+  .btn-ghost{
+    border:1px solid var(--border);padding:16px 30px;border-radius:100px;
+    font-weight:600;font-size:15px;transition:border-color .25s ease, background .25s ease;
+  }
+  .btn-ghost:hover{border-color:var(--ink);background:var(--surface)}
+
+  .hero-marquee{
+    position:absolute;bottom:0;left:0;right:0;
+    border-top:1px solid var(--border);padding:18px 0;
+    white-space:nowrap;overflow:hidden;
+  }
+  .hero-marquee .track{
+    display:inline-flex;gap:0;animation:scroll 70s linear infinite;
+    font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--ink-soft);
+  }
+  .hero-marquee .track span{display:inline-flex;align-items:center;gap:48px;padding-right:48px}
+  .hero-marquee .dot{color:var(--accent-2)}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ---------- SECTION HEADS ---------- */
+  .section{padding:120px 0}
+  .section-head{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:24px;margin-bottom:56px;flex-wrap:wrap;
+  }
+  .section-head h2{font-size:clamp(30px,4vw,48px);font-weight:900;letter-spacing:-0.02em;max-width:560px}
+  .section-head p{color:var(--ink-soft);max-width:360px;font-size:15px;line-height:1.6}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .7s ease}
+  .reveal.in{opacity:1;transform:translateY(0)}
+
+  /* ---------- PORTFOLIO GRID EDITORIAL ---------- */
+  .grid-editorial{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:20px;
+  }
+  .card{
+    position:relative;border-radius:var(--radius);overflow:hidden;
+    background:var(--surface);border:1px solid var(--border);
+    cursor:pointer;
+  }
+  .card.big{grid-column:span 3;aspect-ratio:16/9}
+  .card.small{grid-column:span 3;aspect-ratio:16/9}
+  .card.wide{grid-column:span 6;aspect-ratio:16/9}
+  .card.banner-strip{grid-column:span 3;aspect-ratio:1000/260}
+  @media(max-width:900px){
+    .card.big,.card.small,.card.wide,.card.banner-strip{grid-column:span 6}
+  }
+  .card .placeholder-media{
+    position:absolute;inset:0;
+    background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);
+    opacity:.14;transition:opacity .4s ease, transform .5s ease;
+  }
+  .card:hover .placeholder-media{opacity:.24;transform:scale(1.04)}
+  .card .card-media{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transition:transform .5s ease;
+  }
+  .card:hover .card-media{transform:scale(1.04)}
+  .card .ph-label{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);font-size:13px;font-weight:600;text-align:center;padding:20px;
+  }
+  .card-info{
+    position:absolute;left:0;right:0;bottom:0;padding:22px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
+    background:linear-gradient(to top, rgba(255,255,255,.94), rgba(255,255,255,0));
+  }
+  .card-cat{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px}
+  .card-title{font-size:19px;font-weight:700;letter-spacing:-0.01em}
+  .card-cta{
+    font-size:13px;font-weight:600;background:var(--ink);color:var(--white);
+    padding:9px 16px;border-radius:100px;white-space:nowrap;
+    opacity:0;transform:translateY(6px);transition:opacity .3s ease, transform .3s ease;
+  }
+  .card:hover .card-cta{opacity:1;transform:translateY(0)}
+  .card:hover{border-color:var(--accent)}
+
+  /* ---------- SERVICES ---------- */
+  .services{background:var(--ink);color:var(--white);border-radius:28px;padding:80px 48px}
+  @media(max-width:640px){.services{padding:52px 24px;border-radius:20px}}
+  .services h2{font-size:clamp(30px,4.2vw,52px);font-weight:900;letter-spacing:-0.02em;line-height:1.08;max-width:640px}
+  .services h2 .accent{color:var(--accent-2)}
+  .service-list{margin-top:56px;border-top:1px solid rgba(255,255,255,.14)}
+  .service-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:26px 0;border-bottom:1px solid rgba(255,255,255,.14);
+    transition:padding-left .3s ease;
+  }
+  .service-row:hover{padding-left:14px}
+  .service-name{font-size:22px;font-weight:700;display:flex;align-items:center;gap:14px}
+  .service-row .go{
+    font-size:14px;font-weight:600;color:rgba(255,255,255,.55);
+    transition:color .25s ease;
+  }
+  .service-row:hover .go{color:var(--accent-2)}
+
+  /* ---------- PROCESSO / HISTÓRIA DO TRABALHO ---------- */
+  .story-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+  @media(max-width:900px){.story-steps{grid-template-columns:repeat(2,1fr)}}
+  .story-step{border-top:2px solid var(--ink);padding-top:14px}
+  .story-step h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:8px}
+  .story-step p{font-size:14px;color:var(--ink-soft);line-height:1.55}
+
+  /* ---------- FORM ---------- */
+  .form-wrap{
+    background:var(--surface);border:1px solid var(--border);border-radius:24px;
+    padding:56px;max-width:640px;margin:0 auto;position:relative;overflow:hidden;
+  }
+  @media(max-width:640px){.form-wrap{padding:32px 22px}}
+  .form-progress{display:flex;gap:6px;margin-bottom:36px}
+  .form-progress i{flex:1;height:4px;border-radius:100px;background:var(--border);overflow:hidden}
+  .form-progress i span{display:block;height:100%;width:0;background:var(--accent);transition:width .4s ease}
+  .form-progress i.done span{width:100%}
+  .step{display:none}
+  .step.active{display:block;animation:fadeup .5s ease}
+  .step h3{font-size:26px;font-weight:800;letter-spacing:-0.01em;margin-bottom:8px}
+  .step .hint{color:var(--ink-soft);font-size:14px;margin-bottom:28px}
+  .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:480px){.options-grid{grid-template-columns:1fr}}
+  .opt{
+    border:1px solid var(--border);border-radius:12px;padding:16px 18px;
+    font-weight:600;font-size:14px;background:var(--white);cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .opt:hover{border-color:var(--ink)}
+  .opt.selected{border-color:var(--accent);background:rgba(91,61,245,.06);color:var(--accent)}
+  textarea,input[type=text],input[type=tel],input[type=email]{
+    width:100%;border:1px solid var(--border);border-radius:12px;padding:14px 16px;
+    font-family:inherit;font-size:15px;background:var(--white);margin-bottom:14px;
+  }
+  textarea{min-height:120px;resize:vertical}
+  .upload-box{
+    border:1px dashed var(--border);border-radius:12px;padding:28px;text-align:center;
+    color:var(--ink-soft);font-size:14px;cursor:pointer;
+  }
+  .step-actions{display:flex;justify-content:space-between;margin-top:32px}
+  .link-back{font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer}
+  .btn-next{
+    background:var(--ink);color:var(--white);border:none;border-radius:100px;
+    padding:14px 28px;font-weight:600;font-size:15px;cursor:pointer;transition:background .25s ease;
+  }
+  .btn-next:hover{background:var(--accent)}
+  .ref-tag{
+    display:inline-flex;align-items:center;gap:8px;background:rgba(91,61,245,.08);
+    color:var(--accent);border-radius:100px;padding:8px 14px;font-size:13px;font-weight:600;
+    margin-bottom:20px;
+  }
+  .done-icon{
+    width:56px;height:56px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+    color:white;font-size:24px;
+  }
+
+  footer{padding:64px 0 40px;border-top:1px solid var(--border);margin-top:60px}
+  .foot-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;font-size:14px;color:var(--ink-soft)}
+
+  /* ---------- MODAL ADICIONAR TRABALHO ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(15,15,20,.5);z-index:80;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .modal-overlay.open{opacity:1;pointer-events:auto}
+  .modal-box{
+    background:var(--white);border-radius:20px;padding:32px;width:100%;max-width:440px;
+    position:relative;max-height:88vh;overflow-y:auto;
+    transform:translateY(14px) scale(.98);transition:transform .25s ease;
+  }
+  .modal-overlay.open .modal-box{transform:translateY(0) scale(1)}
+  .modal-box h3{font-size:22px;font-weight:800;margin-bottom:4px}
+  .field-label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:16px 0 6px}
+  .modal-box select{
+    width:100%;border:1px solid var(--border);border-radius:12px;padding:12px 14px;
+    font-family:inherit;font-size:14px;background:var(--white);
+  }
+  .project-remove{
+    position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;
+    background:rgba(15,15,20,.55);color:#fff;border:none;cursor:pointer;font-size:14px;
+    display:flex;align-items:center;justify-content:center;z-index:2;
+  }
+
+  /* ---------- WHATSAPP FLUTUANTE ---------- */
+  .wpp-fab{
+    position:fixed;right:24px;bottom:24px;z-index:60;
+    width:60px;height:60px;border-radius:50%;
+    background:#25D366;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 26px rgba(37,211,102,.4);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .wpp-fab:hover{transform:scale(1.06);box-shadow:0 14px 32px rgba(37,211,102,.5)}
+  .wpp-fab svg{width:30px;height:30px}
+
+  .wpp-panel{
+    position:fixed;right:24px;bottom:96px;z-index:60;
+    width:280px;background:var(--white);border:1px solid var(--border);
+    border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.16);
+    padding:24px;text-align:center;
+    opacity:0;transform:translateY(16px) scale(.96);pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .wpp-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+  .wpp-panel h4{font-size:16px;font-weight:800;margin-bottom:4px}
+  .wpp-panel p{font-size:13px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5}
+  .wpp-panel img{width:160px;height:160px;border-radius:12px;border:1px solid var(--border);margin:0 auto 16px}
+  .wpp-panel .btn-open{
+    display:block;background:#25D366;color:#fff;font-weight:700;font-size:14px;
+    padding:12px;border-radius:100px;transition:filter .2s ease;
+  }
+  .wpp-panel .btn-open:hover{filter:brightness(.94)}
+  .wpp-close{
+    position:absolute;top:12px;right:14px;background:none;border:none;
+    color:var(--ink-soft);font-size:18px;cursor:pointer;line-height:1;
+  }
+  @media(max-width:480px){
+    .wpp-fab{right:16px;bottom:16px}
+    .wpp-panel{right:16px;bottom:88px;width:calc(100vw - 32px)}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a class="logo" href="#top">Murylo<span style="color:var(--accent)">.</span></a>
+    <ul class="nav-links">
+      <li><a href="#trabalhos">Trabalhos</a></li>
+      <li><a href="#servicos">Serviços</a></li>
+      <li><a href="#sobre">Sobre</a></li>
+    </ul>
+    <a class="nav-cta" href="#orcamento">Pedir orçamento</a>
+    <button class="nav-add" id="openAddProject" title="Adicionar trabalho" style="display:none">+ Trabalho</button>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero wrap">
+    <p class="hero-tag">Design gráfico <b>+</b> Motion Design para streamers, gamers e marcas</p>
+    <h1>
+      <span class="split"><span>Você imagina.</span></span>
+      <span class="split"><span>Eu coloco em</span></span>
+      <span class="split"><span>movimento.</span></span>
+    </h1>
+    <p class="lead">Banners, artes de stream, identidade visual e animação — pensados pra quem vive na tela: streamers, criadores e times de conteúdo.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#orcamento">Pedir uma prévia</a>
+      <a class="btn-ghost" href="#trabalhos">Ver trabalhos</a>
+    </div>
+  </section>
+
+  <!-- TRABALHOS -->
+  <section class="section wrap" id="trabalhos">
+    <div class="section-head reveal">
+      <h2>Trabalhos selecionados</h2>
+      <p>Substitua cada bloco abaixo pela imagem/vídeo real do projeto — a estrutura já está pronta pra receber dezenas de novos trabalhos.</p>
+    </div>
+    <div class="grid-editorial" id="projectsGrid">
+
+      <div class="card big reveal" data-project="Identidade União Norte">
+        <img class="card-media" src="banner.jpg" alt="Identidade visual União Norte">
+        <div class="card-info">
+          <div>
+            <div class="card-cat">Identidade Visual</div>
+            <div class="card-title">Identidade União Norte</div>
+          </div>
+          <button class="card-cta" onclick="openQuoteFromProject(this)">Quero algo assim</button>
+        </div>
+      </div>
+
+      <div class="card banner-strip reveal" data-project="Sobre União Norte">
+        <img class="card-media" src="sobre_uniao_.png" alt="Banner Sobre União Norte">
+        <div class="card-info">
+          <div>
+            <div class="card-cat">Identidade Visual</div>
+            <div class="card-title">Sobre União Norte</div>
+          </div>
+          <button class="card-cta" onclick="openQuoteFromProject(this)">Quero algo assim</button>
+        </div>
+      </div>
+
+      <div class="card wide reveal" data-project="Stream Offline — União Norte">
+        <img class="card-media" src="live_off.jpg" alt="Tela Stream está offline — União Norte">
+        <div class="card-info">
+          <div>
+            <div class="card-cat">Stream</div>
+            <div class="card-title">Stream Offline — União Norte</div>
+          </div>
+          <button class="card-cta" onclick="openQuoteFromProject(this)">Quero algo assim</button>
+        </div>
+      </div>
+
+      <div class="card small reveal" data-project="Moldura de Live — União Norte">
+        <video class="card-media" src="uniao.mov" autoplay muted loop playsinline></video>
+        <div class="card-info">
+          <div>
+            <div class="card-cat">Motion Design</div>
+            <div class="card-title">Moldura de Live</div>
+          </div>
+          <button class="card-cta" onclick="openQuoteFromProject(this)">Quero algo assim</button>
+        </div>
+      </div>
+
+      <div class="card small reveal" data-project="Obrigado por Assistir — União Norte">
+        <video class="card-media" src="obrigado_por_assisitr.mp4" autoplay muted loop playsinline></video>
+        <div class="card-info">
+          <div>
+            <div class="card-cat">Motion Design</div>
+            <div class="card-title">Obrigado por Assistir</div>
+          </div>
+          <button class="card-cta" onclick="openQuoteFromProject(this)">Quero algo assim</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROCESSO -->
+  <section class="section wrap" id="processo">
+    <div class="section-head reveal">
+      <h2>Como cada projeto é construído</h2>
+      <p>Todo trabalho aqui passa pelas mesmas etapas — isso aparece na página de cada projeto.</p>
+    </div>
+    <div class="story-steps reveal">
+      <div class="story-step"><h4>Problema</h4><p>O que o cliente precisava resolver.</p></div>
+      <div class="story-step"><h4>Conceito</h4><p>A ideia por trás da peça.</p></div>
+      <div class="story-step"><h4>Design</h4><p>Composição, tipografia, paleta.</p></div>
+      <div class="story-step"><h4>Motion</h4><p>Como a peça ganhou movimento.</p></div>
+      <div class="story-step"><h4>Resultado</h4><p>Entrega final e impacto.</p></div>
+    </div>
+  </section>
+
+  <!-- SERVIÇOS -->
+  <section class="section wrap" id="servicos">
+    <div class="services reveal">
+      <h2>Do banner parado ao <span class="accent">vídeo em movimento</span> — cada peça pronta pra sua stream.</h2>
+      <div class="service-list">
+        <div class="service-row"><span class="service-name">🎬 Motion Design</span><span class="go" onclick="selectServiceAndOpen('Motion Design')">Quero esse serviço →</span></div>
+        <div class="service-row"><span class="service-name">🎨 Artes para redes sociais</span><span class="go" onclick="selectServiceAndOpen('Social Media')">Quero esse serviço →</span></div>
+        <div class="service-row"><span class="service-name">📺 Artes para stream</span><span class="go" onclick="selectServiceAndOpen('Stream')">Quero esse serviço →</span></div>
+        <div class="service-row"><span class="service-name">🔥 Banners</span><span class="go" onclick="selectServiceAndOpen('Banner')">Quero esse serviço →</span></div>
+        <div class="service-row"><span class="service-name">⚡ Animações</span><span class="go" onclick="selectServiceAndOpen('Motion Design')">Quero esse serviço →</span></div>
+        <div class="service-row"><span class="service-name">🎮 Conteúdo para gamers</span><span class="go" onclick="selectServiceAndOpen('Outro')">Quero esse serviço →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORMULÁRIO -->
+  <section class="section wrap" id="orcamento">
+    <div class="section-head reveal">
+      <h2>Vamos colocar seu projeto em movimento</h2>
+      <p>Seis passos rápidos — sem formulário gigante de uma vez só.</p>
+    </div>
+
+    <div class="form-wrap reveal">
+      <div class="form-progress" id="progressBar"></div>
+
+      <!-- Etapa 1 -->
+      <div class="step active" data-step="1">
+        <h3>O que você precisa?</h3>
+        <p class="hint">Escolha o tipo de projeto.</p>
+        <div class="options-grid" id="serviceOptions">
+          <button class="opt" data-value="Motion Design">Motion Design</button>
+          <button class="opt" data-value="Banner">Banner</button>
+          <button class="opt" data-value="Stream">Stream</button>
+          <button class="opt" data-value="Social Media">Social Media</button>
+          <button class="opt" data-value="Outro">Outro</button>
+        </div>
+        <div class="step-actions"><span></span><button class="btn-next" onclick="nextStep(1)">Continuar</button></div>
+      </div>
+
+      <!-- Etapa 2 -->
+      <div class="step" data-step="2">
+        <h3>Conte um pouco sobre o projeto</h3>
+        <p class="hint">Pra quem é, quando precisa, qualquer detalhe importa.</p>
+        <textarea id="projectDesc" placeholder="Ex: preciso de um banner novo pra live de CS, tema roxo/preto..."></textarea>
+        <div class="step-actions"><span class="link-back" onclick="prevStep(2)">Voltar</span><button class="btn-next" onclick="nextStep(2)">Continuar</button></div>
+      </div>
+
+      <!-- Etapa 3 -->
+      <div class="step" data-step="3">
+        <h3>Tem alguma referência?</h3>
+        <p class="hint">Envie imagens ou links de inspiração (opcional).</p>
+        <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+          Clique pra enviar um arquivo <input type="file" id="fileInput" style="display:none">
+        </div>
+        <div class="step-actions"><span class="link-back" onclick="prevStep(3)">Voltar</span><button class="btn-next" onclick="nextStep(3)">Continuar</button></div>
+      </div>
+
+      <!-- Etapa 4 -->
+      <div class="step" data-step="4">
+        <h3>Quer algo parecido com algum trabalho meu?</h3>
+        <p class="hint" id="refHint">Selecione um projeto do portfólio como referência (opcional).</p>
+        <div id="refTagWrap"></div>
+        <div class="options-grid">
+          <button class="opt" data-value="Identidade União Norte">Identidade União Norte</button>
+          <button class="opt" data-value="Stream Offline — União Norte">Stream Offline</button>
+          <button class="opt" data-value="Moldura de Live — União Norte">Moldura de Live</button>
+          <button class="opt" data-value="Nenhum">Nenhum, é algo novo</button>
+        </div>
+        <div class="step-actions"><span class="link-back" onclick="prevStep(4)">Voltar</span><button class="btn-next" onclick="nextStep(4)">Continuar</button></div>
+      </div>
+
+      <!-- Etapa 5 -->
+      <div class="step" data-step="5">
+        <h3>Como podemos falar com você?</h3>
+        <input type="text" id="cName" placeholder="Nome">
+        <input type="tel" id="cWpp" placeholder="WhatsApp">
+        <input type="email" id="cEmail" placeholder="Email">
+        <div class="step-actions"><span class="link-back" onclick="prevStep(5)">Voltar</span><button class="btn-next" onclick="submitForm()">Enviar pedido</button></div>
+      </div>
+
+      <!-- Etapa 6 -->
+      <div class="step" data-step="6">
+        <div class="done-icon">✓</div>
+        <h3>Pronto. Recebemos seu projeto.</h3>
+        <p class="hint">Em breve você recebe um retorno com a prévia ou o orçamento.</p>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot-row">
+    <span>Murylo — Design & Motion</span>
+    <span>WhatsApp · Instagram · Email · <a href="#" id="creatorAreaLink" style="text-decoration:underline">Área do criador</a></span>
+  </div>
+</footer>
+
+<!-- MODAL LOGIN DO CRIADOR -->
+<div class="modal-overlay" id="loginModalOverlay">
+  <div class="modal-box">
+    <button class="wpp-close" id="closeLoginModal">✕</button>
+    <h3>Área do criador</h3>
+    <p class="hint">Entre pra poder adicionar ou remover trabalhos.</p>
+    <label class="field-label">Email</label>
+    <input type="text" id="loginEmail" placeholder="voce@email.com">
+    <label class="field-label">Senha</label>
+    <input type="text" id="loginPassword" placeholder="Senha">
+    <button class="btn-next" id="doLogin" style="width:100%;margin-top:16px">Entrar</button>
+  </div>
+</div>
+
+<!-- MODAL ADICIONAR TRABALHO -->
+<div class="modal-overlay" id="addModalOverlay">
+  <div class="modal-box">
+    <button class="wpp-close" id="closeAddModal">✕</button>
+    <h3>Adicionar trabalho</h3>
+    <p class="hint">Aparece direto na galeria "Trabalhos selecionados".</p>
+
+    <label class="field-label">Nome do projeto</label>
+    <input type="text" id="newTitle" placeholder="Ex: Banner de Lançamento">
+
+    <label class="field-label">Categoria</label>
+    <select id="newCategory">
+      <option>Motion Design</option>
+      <option>Banners</option>
+      <option>Stream</option>
+      <option>Social Media</option>
+      <option>Thumbnails</option>
+      <option>Identidade Visual</option>
+      <option>Edição</option>
+      <option>Animação</option>
+      <option>Outros</option>
+    </select>
+
+    <label class="field-label">Formato do card</label>
+    <select id="newShape">
+      <option value="big">Grande</option>
+      <option value="small" selected>Padrão</option>
+      <option value="wide">Largo (linha inteira)</option>
+    </select>
+
+    <label class="field-label">Imagem ou vídeo</label>
+    <div class="upload-box" id="newMediaBox">Clique pra escolher o arquivo</div>
+    <input type="file" id="newMediaInput" accept="image/*,video/*" style="display:none">
+
+    <button class="btn-next" id="saveNewProject" style="width:100%;margin-top:20px">Adicionar à galeria</button>
+  </div>
+</div>
+
+<!-- WHATSAPP FLUTUANTE -->
+<button class="wpp-fab" id="wppFab" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.1.2-.3.2-.6.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.4 2 11.9c0 1.9.5 3.6 1.5 5.2L2 22l5.1-1.3c1.5.8 3.2 1.3 4.9 1.3 5.5 0 10-4.4 10-9.9C22 6.4 17.5 2 12 2zm0 18c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3C4.1 15 3.6 13.5 3.6 12 3.6 7.4 7.4 3.7 12 3.7c4.6 0 8.4 3.7 8.4 8.3 0 4.5-3.8 8-8.4 8z"/></svg>
+</button>
+
+<div class="wpp-panel" id="wppPanel">
+  <button class="wpp-close" id="wppClose">✕</button>
+  <h4>Fala comigo no WhatsApp</h4>
+  <p>Aponte a câmera pro QR code ou clique no botão abaixo.</p>
+  <img id="wppQr" src="" alt="QR code do WhatsApp">
+  <a class="btn-open" id="wppLink" href="#" target="_blank" rel="noopener">Abrir conversa</a>
+</div>
+
+<script>
+  // reveal on scroll
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // progress bar build (6 steps)
+  const progressBar = document.getElementById('progressBar');
+  for(let i=1;i<=6;i++){
+    const i_el = document.createElement('i');
+    i_el.dataset.step = i;
+    i_el.innerHTML = '<span></span>';
+    progressBar.appendChild(i_el);
+  }
+  function updateProgress(step){
+    document.querySelectorAll('#progressBar i').forEach(i=>{
+      i.classList.toggle('done', Number(i.dataset.step) <= step);
+    });
+  }
+  updateProgress(1);
+
+  let formState = { service:null, desc:'', reference:null, name:'', wpp:'', email:'' };
+
+  function showStep(n){
+    document.querySelectorAll('.step').forEach(s=>s.classList.toggle('active', Number(s.dataset.step)===n));
+    updateProgress(n);
+    document.getElementById('orcamento').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  function nextStep(current){
+    if(current===1 && !formState.service){ alert('Escolha uma opção pra continuar.'); return; }
+    showStep(current+1);
+  }
+  function prevStep(current){ showStep(current-1); }
+
+  // seleção de opções (etapa 1 e 4)
+  document.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const group = btn.parentElement;
+      group.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+      btn.classList.add('selected');
+      const step = btn.closest('.step').dataset.step;
+      if(step==='1') formState.service = btn.dataset.value;
+      if(step==='4') formState.reference = btn.dataset.value;
+    });
+  });
+
+  async function submitForm(){
+    formState.desc = document.getElementById('projectDesc').value;
+    formState.name = document.getElementById('cName').value;
+    formState.wpp = document.getElementById('cWpp').value;
+    formState.email = document.getElementById('cEmail').value;
+
+    const { error } = await supabase.from('leads').insert({
+      service: formState.service,
+      description: formState.desc,
+      reference_project: formState.reference,
+      name: formState.name,
+      whatsapp: formState.wpp,
+      email: formState.email
+    });
+    if(error){ console.error(error); alert('Não deu pra enviar agora, tenta de novo em instantes.'); return; }
+    showStep(6);
+  }
+
+  // "quero algo assim" a partir de um card de projeto
+  function openQuoteFromProject(btn){
+    const project = btn.closest('.card').dataset.project;
+    formState.reference = project;
+    document.getElementById('refHint').textContent = 'Referência selecionada a partir do portfólio:';
+    document.getElementById('refTagWrap').innerHTML = '<div class="ref-tag">📌 ' + project + '</div>';
+    document.getElementById('orcamento').scrollIntoView({behavior:'smooth'});
+    showStep(1);
+  }
+
+  function selectServiceAndOpen(serviceName){
+    formState.service = serviceName;
+    document.querySelectorAll('#serviceOptions .opt').forEach(o=>{
+      o.classList.toggle('selected', o.dataset.value === serviceName);
+    });
+    document.getElementById('orcamento').scrollIntoView({behavior:'smooth'});
+    showStep(1);
+  }
+
+  // ---------- WHATSAPP FLUTUANTE ----------
+  // TODO: troque pelo seu número real, com DDI+DDD, só números (ex: 5535999999999)
+  const WPP_NUMBER = '5500000000000';
+  const WPP_MESSAGE = 'Olá! Vi seu portfólio e quero fazer um orçamento.';
+  const wppLink = 'https://wa.me/' + WPP_NUMBER + '?text=' + encodeURIComponent(WPP_MESSAGE);
+
+  document.getElementById('wppLink').href = wppLink;
+  document.getElementById('wppQr').src =
+    'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(wppLink);
+
+  const wppFab = document.getElementById('wppFab');
+  const wppPanel = document.getElementById('wppPanel');
+  const wppClose = document.getElementById('wppClose');
+
+  wppFab.addEventListener('click', ()=> wppPanel.classList.toggle('open'));
+  wppClose.addEventListener('click', ()=> wppPanel.classList.remove('open'));
+  document.addEventListener('click', (e)=>{
+    if(!wppPanel.contains(e.target) && !wppFab.contains(e.target)){
+      wppPanel.classList.remove('open');
+    }
+  });
+
+  // ---------- SUPABASE ----------
+  // TODO: troque pelas suas chaves reais (Supabase > Project Settings > API)
+  const SUPABASE_URL = 'https://pwjwgwwlowyrokfzhqav.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_bOseFzGeZHg4THKgzyg-iA_S358P5mW';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const grid = document.getElementById('projectsGrid');
+  const overlay = document.getElementById('addModalOverlay');
+  let session = null;
+
+  function buildCard(p){
+    const card = document.createElement('div');
+    card.className = 'card ' + p.shape + ' reveal in';
+    card.dataset.project = p.title;
+    card.dataset.id = p.id;
+
+    const mediaTag = p.media_type && p.media_type.startsWith('video')
+      ? `<video class="card-media" src="${p.media_url}" autoplay muted loop playsinline></video>`
+      : `<img class="card-media" src="${p.media_url}" alt="${p.title}">`;
+
+    card.innerHTML = `
+      ${session ? '<button class="project-remove" title="Remover">✕</button>' : ''}
+      ${mediaTag}
+      <div class="card-info">
+        <div>
+          <div class="card-cat">${p.category}</div>
+          <div class="card-title">${p.title}</div>
+        </div>
+        <button class="card-cta">Quero algo assim</button>
+      </div>`;
+
+    card.querySelector('.card-cta').addEventListener('click', (e)=>{
+      e.stopPropagation(); openQuoteFromProject(card.querySelector('.card-cta'));
+    });
+    const removeBtn = card.querySelector('.project-remove');
+    if(removeBtn){
+      removeBtn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const { error } = await supabase.from('projects').delete().eq('id', p.id);
+        if(!error) card.remove();
+      });
+    }
+    return card;
+  }
+
+  async function loadProjects(){
+    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending:true });
+    if(error){ console.error(error); return; }
+    data.forEach(p => grid.appendChild(buildCard(p)));
+  }
+  loadProjects();
+
+  // ---------- LOGIN DO CRIADOR (protege quem pode adicionar/remover) ----------
+  const openAddProject = document.getElementById('openAddProject');
+  const loginOverlay = document.getElementById('loginModalOverlay');
+
+  async function refreshAuthUI(){
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+    openAddProject.style.display = session ? 'inline-block' : 'none';
+    document.getElementById('creatorAreaLink').textContent = session ? 'Sair' : 'Área do criador';
+  }
+  refreshAuthUI();
+
+  document.getElementById('creatorAreaLink').addEventListener('click', async ()=>{
+    if(session){ await supabase.auth.signOut(); location.reload(); }
+    else { loginOverlay.classList.add('open'); }
+  });
+  document.getElementById('closeLoginModal').addEventListener('click', ()=> loginOverlay.classList.remove('open'));
+
+  document.getElementById('doLogin').addEventListener('click', async ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error){ alert('Login inválido: ' + error.message); return; }
+    loginOverlay.classList.remove('open');
+    location.reload();
+  });
+
+  const closeAddModal = document.getElementById('closeAddModal');
+  const newMediaBox = document.getElementById('newMediaBox');
+  const newMediaInput = document.getElementById('newMediaInput');
+  let pendingFile = null;
+
+  openAddProject.addEventListener('click', ()=> overlay.classList.add('open'));
+  closeAddModal.addEventListener('click', ()=> overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+  newMediaBox.addEventListener('click', ()=> newMediaInput.click());
+  newMediaInput.addEventListener('change', ()=>{
+    pendingFile = newMediaInput.files[0];
+    if(pendingFile) newMediaBox.textContent = pendingFile.name;
+  });
+
+  document.getElementById('saveNewProject').addEventListener('click', async ()=>{
+    const title = document.getElementById('newTitle').value.trim();
+    if(!title || !pendingFile){ alert('Preencha o nome e escolha um arquivo.'); return; }
+
+    const saveBtn = document.getElementById('saveNewProject');
+    saveBtn.textContent = 'Enviando...'; saveBtn.disabled = true;
+
+    const path = `${Date.now()}-${pendingFile.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from('portfolio-media')
+      .upload(path, pendingFile);
+
+    if(uploadError){
+      alert('Erro no upload: ' + uploadError.message);
+      saveBtn.textContent = 'Adicionar à galeria'; saveBtn.disabled = false;
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('portfolio-media').getPublicUrl(path);
+
+    const project = {
+      title,
+      category: document.getElementById('newCategory').value,
+      shape: document.getElementById('newShape').value,
+      media_type: pendingFile.type,
+      media_url: urlData.publicUrl
+    };
+
+    const { data: inserted, error: insertError } = await supabase
+      .from('projects').insert(project).select().single();
+
+    saveBtn.textContent = 'Adicionar à galeria'; saveBtn.disabled = false;
+
+    if(insertError){ alert('Erro ao salvar: ' + insertError.message); return; }
+
+    grid.appendChild(buildCard(inserted));
+    document.getElementById('newTitle').value = '';
+    newMediaBox.textContent = 'Clique pra escolher o arquivo';
+    pendingFile = null;
+    overlay.classList.remove('open');
+  });
+</script>
+
+</body>
+</html>
+
+
+
+NEXT_PUBLIC_SUPABASE_URL=https://pwjwgwwlowyrokfzhqav.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_bOseFzGeZHg4THKgzyg-iA_S358P5mW
